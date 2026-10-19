@@ -148,7 +148,13 @@ class ReservaController extends Controller
             return $reserva->fresh();
         });
 
-        return response()->json(['message' => 'Check-out registrado. La habitación pasa a limpieza.', 'data' => $reserva->load([...$this->relations(), 'consumos'])]);
+        $reserva->load([...$this->relations(), 'consumos.registradoPor']);
+
+        return response()->json([
+            'message' => 'Check-out registrado. La habitación pasa a limpieza.',
+            'data' => $reserva,
+            'factura' => $this->factura($reserva),
+        ]);
     }
 
     public function destroy(Reserva $reserva): JsonResponse
@@ -192,5 +198,29 @@ class ReservaController extends Controller
     private function relations(): array
     {
         return ['huesped:id,nombre,apellido,documento,telefono', 'habitacion.tipo', 'creadaPor'];
+    }
+
+    private function factura(Reserva $reserva): array
+    {
+        return [
+            'numero' => 'HOT-'.str_pad((string) $reserva->id, 6, '0', STR_PAD_LEFT),
+            'emitida_en' => now()->toIso8601String(),
+            'huesped' => trim($reserva->huesped->nombre.' '.$reserva->huesped->apellido),
+            'documento_huesped' => $reserva->huesped->documento,
+            'habitacion' => $reserva->habitacion->numero,
+            'tipo_habitacion' => $reserva->habitacion->tipo->nombre,
+            'fecha_entrada' => $reserva->fecha_entrada->toDateString(),
+            'fecha_salida' => $reserva->fecha_salida->toDateString(),
+            'noches' => $reserva->noches,
+            'precio_noche' => (float) $reserva->precio_noche,
+            'total_hospedaje' => (float) $reserva->costo_hospedaje,
+            'consumos' => $reserva->consumos->map(fn ($consumo) => [
+                'descripcion' => $consumo->descripcion,
+                'cantidad' => $consumo->cantidad,
+                'total' => (float) $consumo->total,
+            ])->values(),
+            'total_consumos' => (float) $reserva->total_consumos,
+            'total' => (float) $reserva->total,
+        ];
     }
 }

@@ -20,8 +20,6 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::put('/profile/password', [AuthController::class, 'changePassword']);
-    Route::get('/dashboard', [DashboardController::class, 'index']);
-
     // Administrador y Recepcionista
     Route::middleware('role:Administrador,Recepcionista')->group(function (): void {
         Route::get('/tipos-habitacion', [TipoHabitacionController::class, 'index']);
@@ -30,8 +28,6 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
         Route::get('/habitaciones/disponibles', [HabitacionController::class, 'disponibles']);
         Route::get('/habitaciones', [HabitacionController::class, 'index']);
         Route::get('/habitaciones/{habitacion}', [HabitacionController::class, 'show']);
-        Route::patch('/habitaciones/{habitacion}/estado', [HabitacionController::class, 'cambiarEstado']);
-
         Route::apiResource('huespedes', HuespedController::class)->except('destroy')->parameters(['huespedes' => 'huesped']);
 
         Route::get('/reservas', [ReservaController::class, 'index']);
@@ -49,6 +45,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
 
     // Solo Administrador
     Route::middleware('role:Administrador')->group(function (): void {
+        Route::get('/dashboard', [DashboardController::class, 'index']);
         Route::post('/tipos-habitacion', [TipoHabitacionController::class, 'store']);
         Route::put('/tipos-habitacion/{tipo}', [TipoHabitacionController::class, 'update']);
         Route::delete('/tipos-habitacion/{tipo}', [TipoHabitacionController::class, 'destroy']);
@@ -56,6 +53,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
         Route::post('/habitaciones', [HabitacionController::class, 'store']);
         Route::put('/habitaciones/{habitacion}', [HabitacionController::class, 'update']);
         Route::delete('/habitaciones/{habitacion}', [HabitacionController::class, 'destroy']);
+        Route::patch('/habitaciones/{habitacion}/estado', [HabitacionController::class, 'cambiarEstado']);
 
         Route::delete('/huespedes/{huesped}', [HuespedController::class, 'destroy']);
         Route::delete('/reservas/{reserva}', [ReservaController::class, 'destroy']);
